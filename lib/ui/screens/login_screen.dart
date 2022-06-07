@@ -1,80 +1,99 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_products_app/providers/login_form_provider.dart';
+import 'package:flutter_products_app/ui/widgets/widgets.dart';
+import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Stack(children: [
+      AuthBackground(),
+      Center(
+          child: SingleChildScrollView(
+              child: Column(children: [
+        const SizedBox(height: 50),
+        CardContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "Ingreso",
+                style: TextStyle(color: Colors.black54, fontSize: 30),
+              ),
+              ChangeNotifierProvider(
+                create: (_) => LoginFormProvider(),
+                child: const FormInput(),
+              )
+            ],
+          ),
+        ),
+        const SizedBox(height: 50),
+        const Text(
+          'Crear una nueva cuenta',
+          style: TextStyle(color: Colors.black, fontSize: 18),
+        )
+      ])))
+    ]));
+  }
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final ScrollController _controller = ScrollController();
+class FormInput extends StatelessWidget {
+  const FormInput({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-        body: Stack(
-      children: [
-        Column(
-          children: [
-            Container(
-              width: size.width,
-              height: size.height * 0.35,
-              color: Colors.purple,
-            ),
-            Container(
-              color: Colors.white,
-              width: size.width,
-              height: size.height * 0.65,
-            )
-          ],
-        ),
-        Center(
-            child: SingleChildScrollView(
-          controller: _controller,
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                width: size.width * 0.85,
-                height: size.height * 0.5,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.white,
-                    boxShadow: <BoxShadow>[BoxShadow(color: Colors.black.withAlpha(100), blurRadius: 15)]),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Ingreso",
-                      style: TextStyle(color: Colors.black54, fontSize: 30),
-                    ),
-                    const SizedBox(height: 30),
-                    const TextField(
-                      decoration: InputDecoration(hintText: 'Correo electrónico', prefixIcon: Icon(Icons.alternate_email)),
-                    ),
-                    const SizedBox(height: 20),
-                    const TextField(
-                      decoration: InputDecoration(hintText: 'Contraseña', prefixIcon: Icon(Icons.lock)),
-                    ),
-                    const SizedBox(height: 40),
-                    TextButton(
-                      onPressed: () {},
-                      style: ButtonStyle(
-                          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                          backgroundColor: MaterialStateProperty.all(Colors.purple),
-                          fixedSize: MaterialStateProperty.all(Size(size.width * 0.85 * 0.6, 40))),
-                      child: const Text(
-                        'Ingresar',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ],
+    final LoginFormProvider loginFormProvider = Provider.of<LoginFormProvider>(context);
+
+    return Form(
+      key: loginFormProvider.keyForm,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: Column(
+        children: [
+          const SizedBox(height: 30),
+          CustomFormField(
+            onChange: (value) => loginFormProvider.email = value,
+            labelText: 'Correo electrónico',
+            icon: Icons.alternate_email,
+            validate: (value) {
+              String pattern =
+                  r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+              RegExp regExp = new RegExp(pattern);
+              return regExp.hasMatch(value ?? '') ? null : 'El correo no es válido';
+            },
           ),
-        ))
-      ],
-    ));
+          const SizedBox(height: 20),
+          CustomFormField(
+            onChange: (value) => loginFormProvider.password = value,
+            labelText: 'Contraseña',
+            icon: Icons.lock,
+            isSecret: true,
+            validate: (value) {
+              if (value != null && value.length >= 6) return null;
+              return 'Contraseña demasiado corta';
+            },
+          ),
+          const SizedBox(height: 40),
+          TextButton(
+            onPressed: loginFormProvider.isLoading
+                ? null
+                : () async {
+                    FocusScope.of(context).unfocus();
+                    if (!loginFormProvider.isValidForm()) return;
+                    Navigator.pushReplacementNamed(context, 'home');
+                  },
+            style: ButtonStyle(
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                backgroundColor: MaterialStateProperty.all(Colors.deepPurple),
+                fixedSize: MaterialStateProperty.all(Size(size.width * 0.85 * 0.6, 40))),
+            child: const Text(
+              'Ingresar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

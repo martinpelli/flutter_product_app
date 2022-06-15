@@ -4,8 +4,8 @@ class CustomFormField extends StatelessWidget {
   final IconData icon;
   final String labelText;
   final bool isSecret;
-  final Function validate;
-  final Function onChange;
+  final String Function(String?)? validate;
+  final Function(String)? onChange;
 
   const CustomFormField({
     Key? key,
@@ -19,8 +19,8 @@ class CustomFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      onChanged: onChange(),
-      validator: validate(),
+      onChanged: onChange,
+      validator: validate,
       autocorrect: false,
       obscureText: isSecret,
       keyboardType: TextInputType.emailAddress,

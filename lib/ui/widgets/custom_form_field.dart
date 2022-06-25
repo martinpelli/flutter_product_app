@@ -4,7 +4,7 @@ class CustomFormField extends StatelessWidget {
   final IconData icon;
   final String labelText;
   final bool isSecret;
-  final String Function(String?)? validate;
+  final String? Function(String?)? validate;
   final Function(String)? onChange;
 
   const CustomFormField({

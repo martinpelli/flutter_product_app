@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_products_app/ui/decorations/input_decoration.dart';
 
 class CustomFormField extends StatelessWidget {
   final IconData icon;
@@ -24,17 +25,7 @@ class CustomFormField extends StatelessWidget {
       autocorrect: false,
       obscureText: isSecret,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecoration(
-          enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.deepPurple)),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.deepPurple, width: 2),
-          ),
-          labelText: labelText,
-          labelStyle: const TextStyle(color: Colors.grey),
-          prefixIcon: Icon(
-            icon,
-            color: Colors.deepPurple,
-          )),
+      decoration: CustomInputDecoration.customInputDecoration(labelText: labelText, icon: icon)
     );
   }
 }

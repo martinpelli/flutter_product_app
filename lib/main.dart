@@ -4,7 +4,7 @@ import 'package:flutter_products_app/ui/screens/home_screen.dart';
 import 'package:flutter_products_app/ui/screens/screens.dart';
 import 'package:provider/provider.dart';
 
-void main() => runApp(ProductsApp());
+void main() => runApp(const AppState());
 
 class AppState extends StatelessWidget {
   const AppState({Key? key}) : super(key: key);

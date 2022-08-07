@@ -4,6 +4,8 @@ import 'package:flutter_products_app/ui/screens/loading_screen.dart';
 import 'package:flutter_products_app/ui/widgets/widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/models.dart';
+
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,10 @@ class HomeScreen extends StatelessWidget {
                 product: productsService.products[index],
               ))),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          productsService.selectedProduct = Product(available: false, name: '', price: 0.0);
+          Navigator.pushNamed(context, 'product');
+        },
         child: const Icon(Icons.add),
       ),
     );

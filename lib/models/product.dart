@@ -17,6 +17,8 @@ class Product {
   double price;
   String? id;
 
+  String toJson() => json.encode(toMap());
+
   factory Product.fromMap(Map<String, dynamic> json) => Product(
         available: json["available"],
         name: json["name"],

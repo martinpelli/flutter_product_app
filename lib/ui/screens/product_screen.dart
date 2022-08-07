@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_products_app/providers/product_form_provider.dart';
 import 'package:flutter_products_app/services/services.dart';
 import 'package:flutter_products_app/ui/widgets/product_image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../decorations/input_decoration.dart';
@@ -28,6 +30,7 @@ class _ProductScreenBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final productForm = Provider.of<ProductFormProvider>(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -42,7 +45,16 @@ class _ProductScreenBody extends StatelessWidget {
               Positioned(
                   top: 60,
                   right: 20,
-                  child: IconButton(onPressed: () {}, icon: const Icon(Icons.camera_alt_outlined, size: 40, color: Colors.white))),
+                  child: IconButton(
+                      onPressed: () async {
+                        final imagePicker = ImagePicker();
+                        final XFile? pickedImage = await imagePicker.pickImage(source: ImageSource.camera, imageQuality: 100);
+
+                        if (pickedImage == null) return;
+
+                        productService.updateSelectedProductImage(pickedImage.path);
+                      },
+                      icon: const Icon(Icons.camera_alt_outlined, size: 40, color: Colors.white))),
             ]),
             const _productForm(),
             const SizedBox(height: 100)
@@ -51,8 +63,15 @@ class _ProductScreenBody extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.save_outlined),
-        onPressed: () {},
+        onPressed: productService.isSaving
+            ? null
+            : () async {
+                if (!productForm.isValidForm()) return;
+                final String? imageUrl = await productService.uploadIamge();
+                if (imageUrl != null) productForm.product.picture = imageUrl;
+                await productService.saveOrCreateProduct(productForm.product);
+              },
+        child: productService.isSaving ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.save_outlined),
       ),
     );
   }
@@ -65,7 +84,7 @@ class _productForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productForm = Provider.of<ProductFormProvider>(context).product;
+    final productForm = Provider.of<ProductFormProvider>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Container(
@@ -73,38 +92,45 @@ class _productForm extends StatelessWidget {
         width: double.infinity,
         decoration: _buildBoxDecoration(),
         child: Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            key: productForm.formkey,
             child: Column(
-          children: [
-            const SizedBox(height: 10),
-            TextFormField(
-              decoration: CustomInputDecoration.customInputDecoration(labelText: 'Name:', hintText: 'Product name'),
-              initialValue: productForm.name,
-              onChanged: (value) => productForm.name = value,
-              validator: ((value) {
-                if (value == null || value.isEmpty) return 'Name obligatory';
-              }),
-            ),
-            const SizedBox(height: 30),
-            TextFormField(
-              keyboardType: TextInputType.number,
-              decoration: CustomInputDecoration.customInputDecoration(labelText: 'Price:', hintText: '\$150'),
-              onChanged: (value) {
-                if (double.tryParse(value) == null) {
-                  productForm.price = 0;
-                } else {
-                  productForm.price = double.parse(value);
-                }
-              },
-              validator: ((value) {
-                if (value == null || value.isEmpty) return 'Price obligatory';
-              }),
-              initialValue: productForm.price.toString(),
-            ),
-            const SizedBox(height: 30),
-            SwitchListTile.adaptive(title: const Text('Available'), activeColor: Colors.indigo, value: productForm.available, onChanged: (value) {}),
-            const SizedBox(height: 30),
-          ],
-        )),
+              children: [
+                const SizedBox(height: 10),
+                TextFormField(
+                  decoration: CustomInputDecoration.customInputDecoration(labelText: 'Name:', hintText: 'Product name'),
+                  initialValue: productForm.product.name,
+                  onChanged: (value) => productForm.product.name = value,
+                  validator: ((value) {
+                    if (value == null || value.isEmpty) return 'Name obligatory';
+                  }),
+                ),
+                const SizedBox(height: 30),
+                TextFormField(
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^(\d+)?\.?\d{0,2}'))],
+                  keyboardType: TextInputType.number,
+                  decoration: CustomInputDecoration.customInputDecoration(labelText: 'Price:', hintText: '\$150'),
+                  onChanged: (value) {
+                    if (double.tryParse(value) == null) {
+                      productForm.product.price = 0;
+                    } else {
+                      productForm.product.price = double.parse(value);
+                    }
+                  },
+                  validator: ((value) {
+                    if (value == null || value.isEmpty) return 'Price obligatory';
+                  }),
+                  initialValue: productForm.product.price.toString(),
+                ),
+                const SizedBox(height: 30),
+                SwitchListTile.adaptive(
+                    title: const Text('Available'),
+                    activeColor: Colors.indigo,
+                    value: productForm.product.available,
+                    onChanged: productForm.updateAvailability),
+                const SizedBox(height: 30),
+              ],
+            )),
       ),
     );
   }

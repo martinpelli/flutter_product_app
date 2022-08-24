@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_products_app/providers/login_form_provider.dart';
+import 'package:flutter_products_app/services/services.dart';
 import 'package:flutter_products_app/ui/widgets/widgets.dart';
 import 'package:provider/provider.dart';
 
-import '../../services/services.dart';
-
-class LoginScreen extends StatelessWidget {
+class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,26 +19,23 @@ class LoginScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                "Ingreso",
+                "Crear cuenta",
                 style: TextStyle(color: Colors.black54, fontSize: 30),
               ),
               ChangeNotifierProvider(
                 create: (_) => LoginFormProvider(),
-                child: const FormLoginInput(),
+                child: const FormRegisterInput(),
               )
             ],
           ),
         ),
         const SizedBox(height: 50),
         TextButton(
-            onPressed: () async {
-              FocusScope.of(context).unfocus();
-              Navigator.pushReplacementNamed(context, 'register');
-            },
+            onPressed: () => Navigator.pushReplacementNamed(context, 'login'),
             style: ButtonStyle(
                 overlayColor: MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)), shape: MaterialStateProperty.all(StadiumBorder())),
             child: const Text(
-              'Crear una nueva cuenta',
+              '¿Ya tienes una cuenta?',
               style: TextStyle(color: Colors.black87, fontSize: 18),
             ))
       ])))
@@ -47,8 +43,8 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class FormLoginInput extends StatelessWidget {
-  const FormLoginInput({Key? key}) : super(key: key);
+class FormRegisterInput extends StatelessWidget {
+  const FormRegisterInput({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -88,20 +84,18 @@ class FormLoginInput extends StatelessWidget {
             onPressed: loginFormProvider.isLoading
                 ? null
                 : () async {
-                    final LoginFormProvider loginFormProvider = Provider.of<LoginFormProvider>(context, listen: false);
-
                     FocusScope.of(context).unfocus();
                     final authService = Provider.of<AuthService>(context, listen: false);
                     if (!loginFormProvider.isValidForm()) return;
 
                     loginFormProvider.isLoading = true;
 
-                    final String? errorMessage = await authService.loginUser(loginFormProvider.email, loginFormProvider.password);
+                    final String? errorMessage = await authService.createUser(loginFormProvider.email, loginFormProvider.password);
 
                     if (errorMessage == null) {
                       Navigator.pushReplacementNamed(context, 'home');
                     } else {
-                      NotificationsService.showSnackBar(errorMessage);
+                      print(errorMessage);
                       loginFormProvider.isLoading = false;
                     }
                   },
@@ -110,7 +104,7 @@ class FormLoginInput extends StatelessWidget {
                 backgroundColor: MaterialStateProperty.all(Colors.deepPurple),
                 fixedSize: MaterialStateProperty.all(Size(size.width * 0.85 * 0.6, 40))),
             child: const Text(
-              'Ingresar',
+              'Crear Cuenta',
               style: TextStyle(color: Colors.white),
             ),
           ),
